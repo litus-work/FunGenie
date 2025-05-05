@@ -1,3 +1,11 @@
 .env
  __pycache__/
 .venv/
+.idea/
+*.swp
+*.bak
+*.tmp
+*.log
+__pycache__/
+*.py[cod]
+*.pyo
