@@ -1,97 +1,72 @@
-#handlers/music.py
-
 from telebot.types import Message, ReplyKeyboardMarkup, KeyboardButton
-from services.groq_client import chat_with_groq
-from services.promts import music_prompt
-from services.utils import remove_think_blocks
 from funbot import bot
-
+from services.groq_client import chat_with_groq
+from services.utils import remove_think_blocks
+from services.promts import joke_prompt
 from handlers import menu
 
-@bot.message_handler(func=lambda message: "Музыка" in message.text)
-def handle_music(message: Message):
-    print("handle_music")
+@bot.message_handler(func=lambda message: "Анекдоты" in message.text)
+def handle_jokes(message: Message):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row(KeyboardButton("🎸 Рок"), KeyboardButton("🎤 Поп"))
-    markup.row(KeyboardButton("🎧 Электронная"), KeyboardButton("🎷 Джаз"))
-    markup.row(KeyboardButton("🎹 Классика"), KeyboardButton("🎼 Саундтреки"))
-    markup.row(KeyboardButton("🎶 Рэп / Хип-хоп"), KeyboardButton("🎻 Инструментал"))
-    markup.row(KeyboardButton("🪗 Фолк"), KeyboardButton("🌍 World music"))
-    markup.row(KeyboardButton("🔀 Случайный жанр"), KeyboardButton("🔙 Назад"))
-    markup.row(KeyboardButton("📝 Ввести жанр музыки вручную"))
+    markup.row(KeyboardButton("👨‍⚕️ Врачи"), KeyboardButton("👮 Менты"))
+    markup.row(KeyboardButton("👩‍🏫 Школа"), KeyboardButton("💼 Работа"))
+    markup.row(KeyboardButton("👨‍💻 IT"), KeyboardButton("👨‍👩‍👧‍👦 Семья"))
+    markup.row(KeyboardButton("🎲 Случайный"), KeyboardButton("🔙 Назад"))
+    markup.row(KeyboardButton("✍️ Ввести жанр анекдота"))
 
-    bot.send_message(
-        message.chat.id,
-        "Выберите жанр музыки 🎵",
-        reply_markup=markup
-    )
+    bot.send_message(message.chat.id, "Выбери жанр анекдотов 😂", reply_markup=markup)
 
-def handle_music_genre(message: Message, genre: str):
-    prompt = music_prompt(genre)
+
+def handle_joke_genre(message: Message, genre: str):
+    prompt = joke_prompt(genre)
     bot.send_chat_action(message.chat.id, 'typing')
     response = chat_with_groq(prompt)
-    cleaned_response = remove_think_blocks(response)
-    bot.send_message(message.chat.id, cleaned_response, parse_mode='Markdown')
+    cleaned = remove_think_blocks(response)
+    bot.send_message(message.chat.id, cleaned, parse_mode='Markdown')
 
+# Хендлеры жанров:
 
+@bot.message_handler(func=lambda m: m.text == "👨‍⚕️ Врачи")
+def handle_doctors(message: Message):
+    handle_joke_genre(message, "врачи")
 
-@bot.message_handler(func=lambda message: message.text == "🎸 Рок")
-def handle_rock(message: Message):
-    handle_music_genre(message, "рок")
+@bot.message_handler(func=lambda m: m.text == "👮 Менты")
+def handle_cops(message: Message):
+    handle_joke_genre(message, "менты")
 
-@bot.message_handler(func=lambda message: message.text == "🎤 Поп")
-def handle_pop(message: Message):
-    handle_music_genre(message, "поп")
+@bot.message_handler(func=lambda m: m.text == "👩‍🏫 Школа")
+def handle_school(message: Message):
+    handle_joke_genre(message, "школа")
 
-@bot.message_handler(func=lambda message: message.text == "🎧 Электронная")
-def handle_electronic(message: Message):
-    handle_music_genre(message, "электронная")
+@bot.message_handler(func=lambda m: m.text == "💼 Работа")
+def handle_work(message: Message):
+    handle_joke_genre(message, "работа")
 
-@bot.message_handler(func=lambda message: message.text == "🎷 Джаз")
-def handle_jazz(message: Message):
-    handle_music_genre(message, "джаз")
+@bot.message_handler(func=lambda m: m.text == "👨‍💻 IT")
+def handle_it(message: Message):
+    handle_joke_genre(message, "программисты")
 
-@bot.message_handler(func=lambda message: message.text == "🎹 Классика")
-def handle_classical(message: Message):
-    handle_music_genre(message, "классическая музыка")
+@bot.message_handler(func=lambda m: m.text == "👨‍👩‍👧‍👦 Семья")
+def handle_family(message: Message):
+    handle_joke_genre(message, "семья")
 
-@bot.message_handler(func=lambda message: message.text == "🎼 Саундтреки")
-def handle_soundtracks(message: Message):
-    handle_music_genre(message, "саундтреки")
+@bot.message_handler(func=lambda m: m.text == "🎲 Случайный")
+def handle_random_joke(message: Message):
+    import random
+    genre = random.choice(["врачи", "менты", "школа", "работа", "программисты", "семья"])
+    handle_joke_genre(message, genre)
 
-@bot.message_handler(func=lambda message: message.text == "🎶 Рэп / Хип-хоп")
-def handle_rap(message: Message):
-    handle_music_genre(message, "рэп")
+# Ввести вручную
+@bot.message_handler(func=lambda m: m.text == "✍️ Ввести жанр анекдота")
+def ask_for_custom_joke_genre(message: Message):
+    bot.send_message(message.chat.id, "Введите жанр анекдота, который вас интересует:")
+    bot.register_next_step_handler(message, process_custom_joke_genre)
 
-@bot.message_handler(func=lambda message: message.text == "🎻 Инструментал")
-def handle_instrumental(message: Message):
-    handle_music_genre(message, "инструментал")
-
-@bot.message_handler(func=lambda message: message.text == "🪗 Фолк")
-def handle_folk(message: Message):
-    handle_music_genre(message, "фолк")
-
-@bot.message_handler(func=lambda message: message.text == "🌍 World music")
-def handle_world(message: Message):
-    handle_music_genre(message, "world music")
-
-@bot.message_handler(func=lambda message: message.text == "🔀 Случайный жанр")
-def handle_world(message: Message):
-    handle_music_genre(message, "случайный жанр")
-
-@bot.message_handler(func=lambda message: message.text == "📝 Ввести жанр музыки вручную")
-def ask_for_custom_genre(message: Message):
-    bot.send_message(message.chat.id, "Введите жанр музыки, который вас интересует (например: роп, поп, электронная):")
-    bot.register_next_step_handler(message, process_custom_genre)
-
-def process_custom_genre(message: Message):
+def process_custom_joke_genre(message: Message):
     user_genre = message.text.strip().lower()
-    print(f"User entered genre: {user_genre}")
-    handle_music_genre(message, user_genre)
+    handle_joke_genre(message, user_genre)
 
-
-@bot.message_handler(func=lambda message: message.text == "🔙 Назад")
-def handle_back(message: Message):
+# Назад
+@bot.message_handler(func=lambda m: m.text == "🔙 Назад")
+def back_to_main(message: Message):
     menu.start(message)
-
-

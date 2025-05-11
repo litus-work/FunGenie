@@ -1,7 +1,8 @@
 from funbot import bot
 
 # Регистрируем хендлеры
-from handlers import menu, movies, music
+from handlers import menu, movies, music, jokes, stories
+
 
 if __name__ == '__main__':
     print("🤖 Бот запущен...")

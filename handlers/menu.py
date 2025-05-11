@@ -18,7 +18,7 @@ def start(message: Message):
     )
 
 
-from handlers import movies, music
+from handlers import movies, music, jokes
 
 @bot.message_handler(func=lambda message: message.text == "🔙 Назад")
 def handle_back(message: Message):
